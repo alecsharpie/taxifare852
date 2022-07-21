@@ -1,12 +1,14 @@
-from taxifare852.data import get_data, clean_df
+from taxifare852.data import get_data, clean_df, get_gcp_data
 from sklearn.model_selection import train_test_split
-from taxifare852.model import get_model
+from taxifare852.model import get_model, save_model_to_gcp
 from taxifare852.pipeline import get_pipeline
 from taxifare852.metrics import compute_rmse
 
 from taxifare852.mlflowlogger import MLFlowBase
 
 import joblib
+
+from taxifare852.params import BUCKET_NAME
 
 class Trainer(MLFlowBase):
 
@@ -18,7 +20,9 @@ class Trainer(MLFlowBase):
 
         self.mlflow_create_run()
 
-        df = get_data()
+        print('getting data...')
+
+        df = get_gcp_data(1000)
 
         df = clean_df(df)
 
@@ -27,6 +31,7 @@ class Trainer(MLFlowBase):
 
         X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.1)
 
+        print('get model...')
         model = get_model()
 
         model.set_params(**model_params)
@@ -38,9 +43,15 @@ class Trainer(MLFlowBase):
 
         pipeline = get_pipeline(model)
 
+        print('train model...')
+
         pipeline.fit(X_train, y_train)
 
+        print('save model...')
+
         joblib.dump(pipeline, 'model.joblib')
+
+        save_model_to_gcp(BUCKET_NAME)
 
         y_pred = pipeline.predict(X_test)
 
@@ -51,3 +62,7 @@ class Trainer(MLFlowBase):
         print('rmse: ', rmse)
 
         return pipeline
+
+if __name__ == '__main__':
+    trainer = Trainer('[MLB] 852 alecsharpie - v3')
+    trainer.train()

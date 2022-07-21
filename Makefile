@@ -53,3 +53,38 @@ pypi_test:
 
 pypi:
 	@twine upload dist/* -u $(PYPI_USERNAME)
+
+# ----------------------------------
+#      GCP
+# ----------------------------------
+
+# bucket
+BUCKET_NAME=lewagon-data-alecsharpie
+
+# training folder
+BUCKET_TRAINING_FOLDER=trainings
+
+# training params
+REGION=europe-west1
+
+# app environment
+PYTHON_VERSION=3.7
+RUNTIME_VERSION=2.2
+
+# package params
+PACKAGE_NAME=taxifare852
+FILENAME=trainer
+
+##### Job - - - - - - - - - - - - - - - - - - - - - - - - -
+
+JOB_NAME=taxi_fare_training_$(shell date +'%Y%m%d_%H%M%S')
+
+gcp_submit_training:
+	gcloud ai-platform jobs submit training ${JOB_NAME} \
+		--job-dir gs://${BUCKET_NAME}/${BUCKET_TRAINING_FOLDER} \
+		--package-path ${PACKAGE_NAME} \
+		--module-name ${PACKAGE_NAME}.${FILENAME} \
+		--python-version=${PYTHON_VERSION} \
+		--runtime-version=${RUNTIME_VERSION} \
+		--region ${REGION} \
+		--stream-logs

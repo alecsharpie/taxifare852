@@ -88,3 +88,25 @@ gcp_submit_training:
 		--runtime-version=${RUNTIME_VERSION} \
 		--region ${REGION} \
 		--stream-logs
+
+# ----------------------------------
+#      API
+# ----------------------------------
+
+run_api:
+	uvicorn api.fast:app --reload
+
+docker_build:
+	docker build -t asia.gcr.io/alecsharpie/taxifare-api852 .
+
+docker_run:
+	docker run -e PORT=5000 -p 5000:5000 asia.gcr.io/alecsharpie/taxifare-api852
+
+docker_run_interactive:
+	docker run -it -e PORT=5000 -p 5000:5000 asia.gcr.io/alecsharpie/taxifare-api852 sh
+
+docker_push:
+	docker push asia.gcr.io/alecsharpie/taxifare-api852
+
+gcloud_deploy:
+	gcloud run deploy --image asia.gcr.io/alecsharpie/taxifare-api852 --region asia-east1
